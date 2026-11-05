@@ -72,7 +72,7 @@ jobs:
       - name: Install Julia dependencies
         run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
-      - name: Test examples (all 16 global tiles, one year)
+      - name: Test examples (all 16 global tiles, five days)
         run: |
           set -o pipefail
           julia --project=. -e 'using Pkg; Pkg.test()' 2>&1 | tee "$RUNNER_TEMP/package-tests.log"
