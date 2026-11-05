@@ -66,7 +66,7 @@ DARONE_MITGCM_PATH=/path/to/darwin3 julia --project=. test/test_examples.jl
 
 Inside the existing Docker image, the default `/dar_one_docker/darwin3` path is used automatically. Test runs receive unique experiment names; their results are written under Darwin's `verification/dar_one_config/run` directory. The runner also updates the Darwin configuration source files when rebuilding each example.
 
-The tests use the bundled Darwin reference fields, run all 16 global tiles for one model year, and verify normal termination and nonempty NetCDF diagnostics. The beginner tutorial also verifies that its plotting example runs successfully.
+The tests use the bundled Darwin reference fields, run all 16 global tiles for five model days, and verify normal termination and nonempty NetCDF diagnostics. The beginner tutorial also verifies that its plotting example runs successfully.
 
 # Contributing 
 
@@ -76,9 +76,11 @@ All other branches are feature branches. Once a feature has been implemented, te
 
 `main` is the most stable version of the code. This branch is used for the docker image. 
 
-## Manuscript figure reproduction
+## Manuscript Figure 4C reproduction
 
-The ten-year, 16-tile Bray-Curtis reproduction can be found in the `/paper` folder, see [the Figure 4C instructions](paper/fig4c/README.md) for setup, execution, and plotting.
+The ten-year, 16-tile Bray-Curtis reproduction is maintained separately from the
+example integration tests. See [the Figure 4C instructions](paper/fig4c/README.md)
+for setup, execution, and plotting.
 
 ## Bundled reference inputs
 

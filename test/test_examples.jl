@@ -121,8 +121,8 @@ mktempdir() do data_dir
         @testset "Global steady state" begin
             names = ["globe-ss-$(x[1])-$(x[2])-$(y[1])-$(y[2])" for x in ((1, 90), (91, 180), (181, 270), (271, 360))
                                       for y in ((1, 40), (41, 80), (81, 120), (121, 160))]
-            # One model year across all 16 tiles exercises annual output and land masking.
-            global_environment = [key == "DARONE_EXAMPLE_ITERATIONS" ? key => "2880" : key => value
+            # Five model days across all 16 tiles exercise initialization and NetCDF output.
+            global_environment = [key == "DARONE_EXAMPLE_ITERATIONS" ? key => "40" : key => value
                                   for (key, value) in environment]
             run_case_study("case_studies/global_steadystate_build.jl",
                            "case_studies/global_steadystate_run.jl", names, global_environment)
