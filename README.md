@@ -66,7 +66,7 @@ DARONE_MITGCM_PATH=/path/to/darwin3 julia --project=. test/test_examples.jl
 
 Inside the existing Docker image, the default `/dar_one_docker/darwin3` path is used automatically. Test runs receive unique experiment names; their results are written under Darwin's `verification/dar_one_config/run` directory. The runner also updates the Darwin configuration source files when rebuilding each example.
 
-The example tests use the bundled Darwin reference fields and check the beginner plotting example. The workflow also runs a full ten-year global comparison using the bundled reference fields in [`data/darwin/`](data/darwin/). Its calculated Figure 4C map and NetCDF field are uploaded as `darone-bray-curtis-full`; the six published figures are uploaded separately as `darone-reference-figures`.
+The example tests use the bundled Darwin reference fields, run all 16 global tiles for one model year, and generate diagnostic plots of the beginner tutorial, bottle experiment, global comparison, and nitrogen-fixer experiment. CI uploads these as `darone-example-plots`. These are integration diagnostics, not manuscript steady-state figures.
 
 # Contributing 
 
@@ -78,15 +78,12 @@ All other branches are feature branches. Once a feature has been implemented, te
 
 ## Manuscript Figure 4C reproduction
 
-The reproduction scripts live in [`paper/fig4c/`](paper/fig4c/) and use
-compact Darwin reference data from `data/darwin/`. The Tests workflow runs
-16 independent 90x40 DAR1 tiles for 10 model years, with a configurable number
-of concurrent tile processes on one GitHub Actions runner. It averages the last
-two annual outputs and compares the 45 non-diazotroph biomass tracers (21-29,
-35-70) against the Darwin reference community.
-
-The result is available as `darone-bray-curtis-full` on the workflow Summary
-page, containing `Fig_Bray_Curtis.png` and `Fig_Bray_Curtis.nc`.
+The reproduction scripts live in [`paper/fig4c/`](paper/fig4c/). To run the
+ten-year, 16-tile experiment, choose **Actions > Tests > Run workflow**, enable
+`reproduce_figure_4c`, and optionally set `global_workers`. The workflow
+averages the final two annual outputs, comparing 45 non-diazotroph biomass
+tracers (21-29, 35-70) against the Darwin reference community. The resulting
+PNG and NetCDF field are uploaded as `darone-bray-curtis-full`.
 
 
 

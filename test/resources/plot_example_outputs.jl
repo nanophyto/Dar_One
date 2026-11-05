@@ -1,10 +1,10 @@
-# Optional plots of short-run real-reference-data output for local debugging.
-# These short-run figures are not reproductions of the manuscript results.
+# Diagnostic figures from the example integration tests and bundled Darwin inputs.
+# These are model outputs, not reproductions of the manuscript steady states.
 using NCDatasets
 using Plots
 
-# The CI plots examine the quantities shown in the scientific documentation
-# figures, using the short integration-test simulations and bundled reference fields.
+# The global experiment runs for one model year; the bottle and nitrogen-fixer
+# experiments retain their short example-test durations.
 const darwin = abspath(get(ENV, "DARONE_MITGCM_PATH", "/dar_one_docker/darwin3"))
 const run_root = joinpath(darwin, "verification", "dar_one_config", "run")
 const suffix = get(ENV, "DARONE_EXAMPLE_ID_SUFFIX", "")
@@ -54,9 +54,8 @@ for (treatment, label, color, linestyle) in (("control", "control", :green, :das
 end
 savefig(bottle, joinpath(plot_dir, "bottle_experiment_ci.png"))
 
-# Global steady state: use the documented Bray-Curtis definition, excluding
-# diazotrophs, to compare the simulated community with the input reference.
-# The full documentation figure also includes explanatory panels A and B.
+# Global integration diagnostic after one model year, not the steady-state
+# comparison in manuscript Figure 4C. Exclude diazotrophs as in the paper.
 numerator = zeros(Float64, 360, 160)
 denominator = zeros(Float64, 360, 160)
 seed_file = joinpath(get(ENV, "DARONE_DATA_DIR", "/dar_one_docker"), "3d.nc")
@@ -80,12 +79,16 @@ NCDataset(seed_file) do seed
 end
 bray_curtis = 1 .- numerator ./ denominator
 bray_curtis[denominator .<= 0] .= NaN
-any(isfinite, bray_curtis) || error("Global Bray-Curtis map contains no finite values")
+valid_bray = bray_curtis[isfinite.(bray_curtis)]
+isempty(valid_bray) && error("Global Bray-Curtis map contains no finite values")
+all(v -> 0 <= v <= 1, valid_bray) || error("Global Bray-Curtis values outside [0, 1]")
+println("One-year global Bray-Curtis: mean=", sum(valid_bray) / length(valid_bray),
+        ", valid cells=", length(valid_bray))
 figure = heatmap(0:359, -80:79, permutedims(bray_curtis);
-                 title="Bray-Curtis Dissimilarity between Steady-State and Global",
+                 title="Bray-Curtis after one model year (integration diagnostic)",
                  xlabel="longitude", ylabel="latitude", color=:viridis,
                  clims=(0, 1), size=(1200, 650))
-savefig(figure, joinpath(plot_dir, "Fig_Bray_Curtis_ci.png"))
+savefig(figure, joinpath(plot_dir, "global_one_year_bray_curtis.png"))
 
 # Nitrogen-fixer niche: plot the total diazotroph biomass against the nitrate
 # and phosphate axes used to initialise the 30x30 grid.
@@ -93,10 +96,10 @@ NCDataset(last(output_files("n_30x30"))) do ds
     diazotrophs = sum(surface(ds, "TRAC$i") for i in 30:34)
     any(isfinite, diazotrophs) || error("Diazotroph map contains no finite values")
     figure = heatmap(range(0, 0.1; length=30), range(0, 0.05; length=30),
-                     permutedims(diazotrophs); title="Total Diazotroph Biomass",
+                     permutedims(diazotrophs); title="Diazotroph biomass (short-run diagnostic)",
                      xlabel="NO3 (mmol N)", ylabel="PO4 (mmol P)",
                      color=:viridis, colorbar_title="mmol C", size=(800, 580))
-    savefig(figure, joinpath(plot_dir, "NfixerPhase_ci.png"))
+    savefig(figure, joinpath(plot_dir, "nitrogen_fixers_short_run.png"))
 end
 
-println("Saved documentation-aligned CI plots to ", abspath(plot_dir))
+println("Saved example integration diagnostics to ", abspath(plot_dir))

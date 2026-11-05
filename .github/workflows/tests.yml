@@ -5,8 +5,12 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      reproduce_figure_4c:
+        description: Reproduce Figure 4C with the ten-year global experiment
+        type: boolean
+        default: false
       global_workers:
-        description: Concurrent DAR1 tiles for the full Bray-Curtis experiment
+        description: Concurrent tiles when reproducing Figure 4C
         type: number
         default: 4
 
@@ -74,7 +78,17 @@ jobs:
           set -o pipefail
           julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()' 2>&1 | tee "$RUNNER_TEMP/package-tests.log"
 
+      - name: Upload generated example diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: darone-example-plots
+          if-no-files-found: ignore
+          retention-days: 14
+          path: ${{ runner.temp }}/darone-example-plots/generated/
+
       - name: Link bundled Darwin reference data
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         run: |
           set -euo pipefail
           mkdir -p "$DARONE_DATA_DIR"
@@ -84,10 +98,12 @@ jobs:
           for file in 3d.nc tave.nc par.nc; do test -s "$DARONE_DATA_DIR/$file"; done
 
       - name: Rebuild the global configuration
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         run: |
           julia --project=. case_studies/global_steadystate_build.jl
 
       - name: Simulate ten years across the global tiles
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         env:
           DARONE_EXAMPLE_ITERATIONS: '28800'
           JULIA_NUM_THREADS: '4'
@@ -97,6 +113,7 @@ jobs:
         run: bash paper/fig4c/run_bray_curtis_tiles.sh
 
       - name: Reconstruct the manuscript Bray-Curtis map
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         run: |
           julia --project=. paper/fig4c/plot_full_bray_curtis.jl \
             "$DARONE_BRAY_TILE_DIR" "$DARONE_EXAMPLE_PLOT_DIR/full"
@@ -113,34 +130,13 @@ jobs:
           cp darwin-sources.env "$DARONE_EXAMPLE_PLOT_DIR/full/darwin-sources.env"
 
       - name: Upload the full Bray-Curtis result
-        if: always()
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         uses: actions/upload-artifact@v4
         with:
           name: darone-bray-curtis-full
           if-no-files-found: ignore
           retention-days: 14
           path: ${{ runner.temp }}/darone-example-plots/full/
-
-      - name: Copy published documentation figures
-        if: always()
-        run: |
-          mkdir -p "$DARONE_EXAMPLE_PLOT_DIR/documentation"
-          cp docs/src/images/*.png "$DARONE_EXAMPLE_PLOT_DIR/documentation/"
-          cp test/resources/figure_artifact_README.md "$DARONE_EXAMPLE_PLOT_DIR/README.md"
-          for source in docs/src/images/*.png; do
-            cmp "$source" "$DARONE_EXAMPLE_PLOT_DIR/documentation/$(basename "$source")"
-          done
-
-      - name: Upload published figure references
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: darone-reference-figures
-          if-no-files-found: ignore
-          retention-days: 14
-          path: |
-            ${{ runner.temp }}/darone-example-plots/documentation/
-            ${{ runner.temp }}/darone-example-plots/README.md
 
       - name: Inventory model diagnostics on failure
         if: failure()
