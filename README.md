@@ -76,30 +76,9 @@ All other branches are feature branches. Once a feature has been implemented, te
 
 `main` is the most stable version of the code. This branch is used for the docker image. 
 
-## Manuscript Figure 4C reproduction
+## Manuscript figure reproduction
 
-The independent ten-year Figure 4C workflow uses the 16 DAR1 tiles, then
-analyses their final two annual records using Python and the same Bray-Curtis
-calculation as the original paper notebook. Set up its isolated Conda environment
-once and run from the repository root:
-
-```bash
-conda env create -f paper/fig4c/environment.yml
-export DARONE_MITGCM_PATH=/path/to/darwin3
-export DARONE_DATA_DIR="$(mktemp -d)"
-ln -s "$PWD/data/darwin/surface_tracers.nc" "$DARONE_DATA_DIR/3d.nc"
-ln -s "$PWD/data/darwin/surface_temperature.nc" "$DARONE_DATA_DIR/tave.nc"
-ln -s "$PWD/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
-julia --project=. case_studies/global_steadystate_build.jl
-JULIA_NUM_THREADS=4 bash paper/fig4c/run_bray_curtis_tiles.sh "$HOME/darone-fig4c"
-conda run -n darone-fig4c python paper/fig4c/plot_bray_curtis.py "$HOME/darone-fig4c"
-```
-
-This produces `Fig_Bray_Curtis.png` and `Fig_Bray_Curtis.nc` in
-`~/darone-fig4c/` and logs each tile under `~/darone-fig4c/logs/`.
-The analysis compares 45 non-diazotroph biomass tracers (21-29 and 35-70)
-against the bundled annual-mean Darwin reference. The paper workflow remains
-separate from routine GitHub Actions tests.
+The ten-year, 16-tile Bray-Curtis reproduction can be found in the `/paper` folder, see [the Figure 4C instructions](paper/fig4c/README.md) for setup, execution, and plotting.
 
 ## Bundled reference inputs
 
