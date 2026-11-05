@@ -52,6 +52,10 @@ You're now ready for the [beginner tutorial](beginner_tutorial)!
 
 See instructions in the documentation: https://barbara42.github.io/Dar_One/build/getting_started/#Setting-up-on-local-machine
 
+## Pinned Darwin sources
+
+The tested Darwin3, `dar_one_config` and reference Docker image revisions are recorded in [`darwin-sources.env`](darwin-sources.env). CI reads this file; local scripts can load the same versions with `set -a; . ./darwin-sources.env; set +a`.
+
 ## Example integration tests
 
 The example test runner executes all nine beginner tutorial and case-study scripts, including Fortran builds, simulations, and the tutorial plot. It uses generated NetCDF input data and short simulation durations. Run it with a Darwin checkout containing `verification/dar_one_config` and a working GNU Fortran toolchain:
