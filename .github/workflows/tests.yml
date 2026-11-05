@@ -4,19 +4,9 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-    inputs:
-      reproduce_figure_4c:
-        description: Reproduce Figure 4C with the ten-year global experiment
-        type: boolean
-        default: false
-      global_workers:
-        description: Concurrent tiles when reproducing Figure 4C
-        type: number
-        default: 4
 
 concurrency:
-  # Keep manuscript reproductions separate from ordinary PR/push runs.
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.reproduce_figure_4c && 'paper' || 'ci' }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -42,9 +32,7 @@ jobs:
         run: |
           echo "DARONE_MITGCM_PATH=$RUNNER_TEMP/darwin3" >> "$GITHUB_ENV"
           echo "DARONE_EXAMPLE_LOG_DIR=$RUNNER_TEMP/darone-example-logs" >> "$GITHUB_ENV"
-          echo "DARONE_EXAMPLE_PLOT_DIR=$RUNNER_TEMP/darone-example-plots" >> "$GITHUB_ENV"
           echo "DARONE_DATA_DIR=$RUNNER_TEMP/darwin-inputs" >> "$GITHUB_ENV"
-          echo "DARONE_BRAY_TILE_DIR=$RUNNER_TEMP/bray-curtis-tiles" >> "$GITHUB_ENV"
 
       - name: Install Fortran and NetCDF dependencies
         run: |
@@ -86,70 +74,10 @@ jobs:
       - name: Install Julia dependencies
         run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
-      - name: Test examples including all 16 global tiles (one year)
+      - name: Test examples (all 16 global tiles, one year)
         run: |
           set -o pipefail
           julia --project=. -e 'using Pkg; Pkg.test()' 2>&1 | tee "$RUNNER_TEMP/package-tests.log"
-
-      - name: Upload plots generated from test simulations
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: darone-example-plots
-          if-no-files-found: ignore
-          retention-days: 14
-          path: ${{ runner.temp }}/darone-example-plots/generated/
-
-      - name: Paper Figure 4C - link Darwin reference data (manual)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
-        run: |
-          set -euo pipefail
-          mkdir -p "$DARONE_DATA_DIR"
-          ln -s "$GITHUB_WORKSPACE/data/darwin/surface_tracers.nc" "$DARONE_DATA_DIR/3d.nc"
-          ln -s "$GITHUB_WORKSPACE/data/darwin/surface_temperature.nc" "$DARONE_DATA_DIR/tave.nc"
-          ln -s "$GITHUB_WORKSPACE/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
-          for file in 3d.nc tave.nc par.nc; do test -s "$DARONE_DATA_DIR/$file"; done
-
-      - name: Paper Figure 4C - build global configuration (manual)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
-        run: |
-          julia --project=. case_studies/global_steadystate_build.jl
-
-      - name: Paper Figure 4C - simulate ten years (manual)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
-        env:
-          DARONE_EXAMPLE_ITERATIONS: '28800'
-          JULIA_NUM_THREADS: '4'
-          DARONE_GLOBAL_WORKERS: ${{ inputs.global_workers || '' }}
-          OPENBLAS_NUM_THREADS: '1'
-          OMP_NUM_THREADS: '1'
-        run: bash paper/fig4c/run_bray_curtis_tiles.sh
-
-      - name: Paper Figure 4C - calculate Bray-Curtis map (manual)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
-        run: |
-          julia --project=. paper/fig4c/plot_full_bray_curtis.jl \
-            "$DARONE_BRAY_TILE_DIR" "$DARONE_EXAMPLE_PLOT_DIR/full"
-          test -s "$DARONE_EXAMPLE_PLOT_DIR/full/Fig_Bray_Curtis.png"
-          test -s "$DARONE_EXAMPLE_PLOT_DIR/full/Fig_Bray_Curtis.nc"
-          cat > "$DARONE_EXAMPLE_PLOT_DIR/full/README.txt" <<'NOTES'
-          Manuscript Figure 4C: Bray-Curtis dissimilarity
-          16 independent 90x40 DAR1 tiles, 10 model years (28800 steps per tile).
-          Each tile uses the time mean of its final two annual output records.
-          The reference is the annual-mean Darwin biomass from data/darwin/.
-          Compare biomass tracers 21-29 and 35-70, excluding diazotrophs.
-          Source versions: darwin-sources.env
-          NOTES
-          cp darwin-sources.env "$DARONE_EXAMPLE_PLOT_DIR/full/darwin-sources.env"
-
-      - name: Paper Figure 4C - upload result (manual)
-        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
-        uses: actions/upload-artifact@v6
-        with:
-          name: darone-bray-curtis-full
-          if-no-files-found: ignore
-          retention-days: 14
-          path: ${{ runner.temp }}/darone-example-plots/full/
 
       - name: Collect model diagnostic inventory on failure
         if: failure()

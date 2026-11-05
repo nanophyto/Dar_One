@@ -66,7 +66,7 @@ DARONE_MITGCM_PATH=/path/to/darwin3 julia --project=. test/test_examples.jl
 
 Inside the existing Docker image, the default `/dar_one_docker/darwin3` path is used automatically. Test runs receive unique experiment names; their results are written under Darwin's `verification/dar_one_config/run` directory. The runner also updates the Darwin configuration source files when rebuilding each example.
 
-The example tests use the bundled Darwin reference fields, run all 16 global tiles for one model year, and generate diagnostic plots of the beginner tutorial, bottle experiment, global comparison, and nitrogen-fixer experiment. CI uploads these as `darone-example-plots`. These are integration diagnostics, not manuscript steady-state figures.
+The tests use the bundled Darwin reference fields, run all 16 global tiles for one model year, and verify normal termination and nonempty NetCDF diagnostics. The beginner tutorial also verifies that its plotting example runs successfully.
 
 # Contributing 
 
@@ -78,14 +78,27 @@ All other branches are feature branches. Once a feature has been implemented, te
 
 ## Manuscript Figure 4C reproduction
 
-The reproduction scripts live in [`paper/fig4c/`](paper/fig4c/). To run the
-ten-year, 16-tile experiment, choose **Actions > Tests > Run workflow**, enable
-`reproduce_figure_4c`, and optionally set `global_workers`. The workflow
-averages the final two annual outputs, comparing 45 non-diazotroph biomass
-tracers (21-29, 35-70) against the Darwin reference community. The resulting
-PNG and NetCDF field are uploaded as `darone-bray-curtis-full`.
+The independent ten-year, 16-tile reproduction remains in
+[`paper/fig4c/`](paper/fig4c/). With a configured Darwin3 checkout and
+working Julia/Fortran dependencies, run from the repository root:
 
+```bash
+export DARONE_MITGCM_PATH=/path/to/darwin3
+export DARONE_DATA_DIR="$(mktemp -d)"
+ln -s "$PWD/data/darwin/surface_tracers.nc" "$DARONE_DATA_DIR/3d.nc"
+ln -s "$PWD/data/darwin/surface_temperature.nc" "$DARONE_DATA_DIR/tave.nc"
+ln -s "$PWD/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
+julia --project=. case_studies/global_steadystate_build.jl
+export DARONE_BRAY_TILE_DIR="$(mktemp -d)"
+JULIA_NUM_THREADS=4 bash paper/fig4c/run_bray_curtis_tiles.sh
+julia --project=. paper/fig4c/plot_full_bray_curtis.jl \
+  "$DARONE_BRAY_TILE_DIR" "$HOME/darone-fig4c"
+```
 
+The result is `~/darone-fig4c/Fig_Bray_Curtis.png` and its NetCDF field.
+The experiment averages the final two annual outputs and compares 45
+non-diazotroph biomass tracers (21-29 and 35-70) against the Darwin reference.
+The paper workflow runs independently of the routine GitHub Actions tests.
 
 ## Bundled reference inputs
 
