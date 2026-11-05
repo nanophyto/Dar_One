@@ -17,8 +17,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
-      DARONE_EXAMPLE_ITERATIONS: '12'
-      GKSwstype: '100'
       # Compile packages when used by tests rather than precompiling everything.
       JULIA_PKG_PRECOMPILE_AUTO: '0'
 

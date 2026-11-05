@@ -82,7 +82,7 @@ mktempdir() do data_dir
     environment = [
         "DARONE_MITGCM_PATH" => DARWIN,
         "DARONE_DATA_DIR" => data_dir,
-        "DARONE_EXAMPLE_ITERATIONS" => get(ENV, "DARONE_EXAMPLE_ITERATIONS", "12"),
+        "DARONE_EXAMPLE_ITERATIONS" => "12",
         "DARONE_EXAMPLE_ID_SUFFIX" => RUN_SUFFIX,
         "DARONE_PLOT_FILE" => plot_file,
         "GKSwstype" => "100",
