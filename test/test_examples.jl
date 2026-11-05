@@ -25,11 +25,9 @@ function run_example(script, environment)
     log_dir = get(ENV, "DARONE_EXAMPLE_LOG_DIR", joinpath(tempdir(), "darone-example-logs-$(getpid())"))
     mkpath(log_dir)
     log_file = joinpath(log_dir, replace(script, '/' => '_') * ".log")
-    started = time()
     succeeded = open(log_file, "w") do log
         success(pipeline(addenv(cmd, environment...), stdout=log, stderr=log))
     end
-    @info "Finished $script" passed=succeeded elapsed_seconds=round(time() - started; digits=1)
     if !succeeded
         println(stderr, "Example failed: $script (log: $log_file)")
         lines = readlines(log_file)
