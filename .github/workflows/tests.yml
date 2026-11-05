@@ -24,6 +24,8 @@ jobs:
     env:
       DARONE_EXAMPLE_ITERATIONS: '12'
       GKSwstype: '100'
+      # Compile packages when used by tests rather than precompiling everything.
+      JULIA_PKG_PRECOMPILE_AUTO: '0'
 
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +55,10 @@ jobs:
         with:
           version: '1.10'
 
-      - uses: julia-actions/cache@v2
+      - name: Cache Julia packages and compiled code
+        uses: julia-actions/cache@v3
+        with:
+          delete-old-caches: false
 
       - name: Prepare Darwin configuration
         run: |
@@ -73,12 +78,15 @@ jobs:
           git -C "$DARONE_MITGCM_PATH" rev-parse HEAD
           git -C "$DARONE_MITGCM_PATH/verification/dar_one_config" rev-parse HEAD
 
-      - name: Run package and example tests
+      - name: Install Julia dependencies
+        run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
+
+      - name: Test examples including all 16 global tiles (one year)
         run: |
           set -o pipefail
-          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()' 2>&1 | tee "$RUNNER_TEMP/package-tests.log"
+          julia --project=. -e 'using Pkg; Pkg.test()' 2>&1 | tee "$RUNNER_TEMP/package-tests.log"
 
-      - name: Upload generated example diagnostics
+      - name: Upload plots generated from test simulations
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -87,7 +95,7 @@ jobs:
           retention-days: 14
           path: ${{ runner.temp }}/darone-example-plots/generated/
 
-      - name: Link bundled Darwin reference data
+      - name: Paper Figure 4C - link Darwin reference data (manual)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         run: |
           set -euo pipefail
@@ -97,12 +105,12 @@ jobs:
           ln -s "$GITHUB_WORKSPACE/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
           for file in 3d.nc tave.nc par.nc; do test -s "$DARONE_DATA_DIR/$file"; done
 
-      - name: Rebuild the global configuration
+      - name: Paper Figure 4C - build global configuration (manual)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         run: |
           julia --project=. case_studies/global_steadystate_build.jl
 
-      - name: Simulate ten years across the global tiles
+      - name: Paper Figure 4C - simulate ten years (manual)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         env:
           DARONE_EXAMPLE_ITERATIONS: '28800'
@@ -112,7 +120,7 @@ jobs:
           OMP_NUM_THREADS: '1'
         run: bash paper/fig4c/run_bray_curtis_tiles.sh
 
-      - name: Reconstruct the manuscript Bray-Curtis map
+      - name: Paper Figure 4C - calculate Bray-Curtis map (manual)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         run: |
           julia --project=. paper/fig4c/plot_full_bray_curtis.jl \
@@ -129,7 +137,7 @@ jobs:
           NOTES
           cp darwin-sources.env "$DARONE_EXAMPLE_PLOT_DIR/full/darwin-sources.env"
 
-      - name: Upload the full Bray-Curtis result
+      - name: Paper Figure 4C - upload result (manual)
         if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
         uses: actions/upload-artifact@v4
         with:
@@ -138,7 +146,7 @@ jobs:
           retention-days: 14
           path: ${{ runner.temp }}/darone-example-plots/full/
 
-      - name: Inventory model diagnostics on failure
+      - name: Collect model diagnostic inventory on failure
         if: failure()
         run: |
           find "$DARONE_MITGCM_PATH/verification/dar_one_config/run" \
