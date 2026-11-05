@@ -1,5 +1,7 @@
 # DAR1
 
+[![Tests](https://github.com/barbara42/Dar_One/actions/workflows/tests.yml/badge.svg)](https://github.com/barbara42/Dar_One/actions/workflows/tests.yml)
+
 Built off of Gael Forget's MITgcmTools! (https://github.com/gaelforget/MITgcmTools.jl)
 
 [DAR1 Documentation](https://barbara42.github.io/Dar_One/build/getting_started/)
