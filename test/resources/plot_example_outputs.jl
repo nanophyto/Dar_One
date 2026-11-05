@@ -1,10 +1,10 @@
-# Optional plots of synthetic fixture output for local debugging.
+# Optional plots of short-run real-reference-data output for local debugging.
 # These short-run figures are not reproductions of the manuscript results.
 using NCDatasets
 using Plots
 
 # The CI plots examine the quantities shown in the scientific documentation
-# figures, using the short integration-test simulations and their input fixtures.
+# figures, using the short integration-test simulations and bundled reference fields.
 const darwin = abspath(get(ENV, "DARONE_MITGCM_PATH", "/dar_one_docker/darwin3"))
 const run_root = joinpath(darwin, "verification", "dar_one_config", "run")
 const suffix = get(ENV, "DARONE_EXAMPLE_ID_SUFFIX", "")

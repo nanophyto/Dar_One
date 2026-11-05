@@ -88,6 +88,14 @@ mkpath(plot_dir)
 end
 
 mktempdir() do data_dir
+    reference_dir = joinpath(ROOT, "data", "darwin")
+    for (alias, original) in (("3d.nc", "surface_tracers.nc"),
+                              ("tave.nc", "surface_temperature.nc"),
+                              ("par.nc", "par_upper4.nc"))
+        target = joinpath(reference_dir, original)
+        isfile(target) || error("Missing Darwin reference input: $target")
+        symlink(target, joinpath(data_dir, alias))
+    end
     generated_dir = joinpath(plot_dir, "generated")
     mkpath(generated_dir)
     plot_file = joinpath(generated_dir, "beginner_tutorial.png")
@@ -116,11 +124,10 @@ mktempdir() do data_dir
             end
         end
 
-        @testset "Case-study input data" begin
-            @test run_example("test/resources/generate_example_fixtures.jl", environment)
-            for name in ("3d.nc", "tave.nc", "par.nc")
-                @test isfile(joinpath(data_dir, name)) && filesize(joinpath(data_dir, name)) > 0
-            end
+        @testset "Reference input data" begin
+            @test all(name -> isfile(joinpath(data_dir, name)) &&
+                              filesize(joinpath(data_dir, name)) > 0,
+                      ("3d.nc", "tave.nc", "par.nc"))
         end
 
         @testset "Bottle experiment" begin

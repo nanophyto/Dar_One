@@ -74,20 +74,14 @@ jobs:
           set -o pipefail
           julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()' 2>&1 | tee "$RUNNER_TEMP/package-tests.log"
 
-      - name: Extract the original Darwin reference data
+      - name: Link bundled Darwin reference data
         run: |
           set -euo pipefail
-          docker pull "$DARONE_IMAGE"
-          container=$(docker create "$DARONE_IMAGE")
-          trap 'docker rm -f "$container" > /dev/null' EXIT
           mkdir -p "$DARONE_DATA_DIR"
-          for file in 3d.nc tave.nc par.nc; do
-            docker cp "$container:/dar_one_docker/$file" "$DARONE_DATA_DIR/$file"
-            test -s "$DARONE_DATA_DIR/$file"
-          done
-          (cd "$DARONE_DATA_DIR" && sha256sum 3d.nc tave.nc par.nc > inputs.sha256)
-          cat "$DARONE_DATA_DIR/inputs.sha256"
-          du -h "$DARONE_DATA_DIR"/*.nc
+          ln -s "$GITHUB_WORKSPACE/data/darwin/surface_tracers.nc" "$DARONE_DATA_DIR/3d.nc"
+          ln -s "$GITHUB_WORKSPACE/data/darwin/surface_temperature.nc" "$DARONE_DATA_DIR/tave.nc"
+          ln -s "$GITHUB_WORKSPACE/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
+          for file in 3d.nc tave.nc par.nc; do test -s "$DARONE_DATA_DIR/$file"; done
 
       - name: Rebuild the global configuration
         run: |
@@ -108,15 +102,13 @@ jobs:
             "$DARONE_BRAY_TILE_DIR" "$DARONE_EXAMPLE_PLOT_DIR/full"
           test -s "$DARONE_EXAMPLE_PLOT_DIR/full/Fig_Bray_Curtis.png"
           test -s "$DARONE_EXAMPLE_PLOT_DIR/full/Fig_Bray_Curtis.nc"
-          cp "$DARONE_DATA_DIR/inputs.sha256" "$DARONE_EXAMPLE_PLOT_DIR/full/inputs.sha256"
           cat > "$DARONE_EXAMPLE_PLOT_DIR/full/README.txt" <<'NOTES'
           Manuscript Figure 4C: Bray-Curtis dissimilarity
           16 independent 90x40 DAR1 tiles, 10 model years (28800 steps per tile).
           Each tile uses the time mean of its final two annual output records.
-          The reference is the annual-mean Darwin biomass from the pinned Docker image.
+          The reference is the annual-mean Darwin biomass from data/darwin/.
           Compare biomass tracers 21-29 and 35-70, excluding diazotrophs.
           Source versions: darwin-sources.env
-          Original data hashes: inputs.sha256
           NOTES
           cp darwin-sources.env "$DARONE_EXAMPLE_PLOT_DIR/full/darwin-sources.env"
 
