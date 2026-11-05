@@ -34,7 +34,7 @@ seq 1 16 | xargs -P "$workers" -n 1 bash -c '
   export DARONE_GLOBAL_X_TILE="$x_tile" DARONE_GLOBAL_Y_TILE="$y_tile"
   log="$DARONE_EXAMPLE_LOG_DIR/darone-global-x${x_tile}-y${y_tile}.log"
   if julia --startup-file=no --project=. case_studies/global_steadystate_run.jl > "$log" 2>&1 &&
-     julia --startup-file=no --project=. test/resources/export_bray_curtis_tiles.jl "$x_tile" "$y_tile" >> "$log" 2>&1; then
+     julia --startup-file=no --project=. paper/fig4c/export_bray_curtis_tiles.jl "$x_tile" "$y_tile" >> "$log" 2>&1; then
     echo "Finished tile x=$x_tile y=$y_tile"
   else
     echo "Failed tile x=$x_tile y=$y_tile; last 80 log lines:" >&2

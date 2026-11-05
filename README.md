@@ -76,16 +76,18 @@ All other branches are feature branches. Once a feature has been implemented, te
 
 `main` is the most stable version of the code. This branch is used for the docker image. 
 
-## Full Bray-Curtis comparison in CI
+## Manuscript Figure 4C reproduction
 
-The Tests workflow reproduces the calculation behind manuscript Figure 4C using
-compact Darwin reference data from `data/darwin/`. After the package tests, it
-runs 16 independent 90x40 DAR1 tiles for 10 model years, with a configurable number of concurrent tile processes on one GitHub Actions runner. It averages the last
+The reproduction scripts live in [`paper/fig4c/`](paper/fig4c/) and use
+compact Darwin reference data from `data/darwin/`. The Tests workflow runs
+16 independent 90x40 DAR1 tiles for 10 model years, with a configurable number
+of concurrent tile processes on one GitHub Actions runner. It averages the last
 two annual outputs and compares the 45 non-diazotroph biomass tracers (21-29,
 35-70) against the Darwin reference community.
 
 The result is available as `darone-bray-curtis-full` on the workflow Summary
 page, containing `Fig_Bray_Curtis.png` and `Fig_Bray_Curtis.nc`.
+
 
 
 ## Bundled reference inputs

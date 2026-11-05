@@ -94,11 +94,11 @@ jobs:
           DARONE_GLOBAL_WORKERS: ${{ inputs.global_workers || '' }}
           OPENBLAS_NUM_THREADS: '1'
           OMP_NUM_THREADS: '1'
-        run: bash test/resources/run_bray_curtis_tiles.sh
+        run: bash paper/fig4c/run_bray_curtis_tiles.sh
 
       - name: Reconstruct the manuscript Bray-Curtis map
         run: |
-          julia --project=. test/resources/plot_full_bray_curtis.jl \
+          julia --project=. paper/fig4c/plot_full_bray_curtis.jl \
             "$DARONE_BRAY_TILE_DIR" "$DARONE_EXAMPLE_PLOT_DIR/full"
           test -s "$DARONE_EXAMPLE_PLOT_DIR/full/Fig_Bray_Curtis.png"
           test -s "$DARONE_EXAMPLE_PLOT_DIR/full/Fig_Bray_Curtis.nc"
