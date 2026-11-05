@@ -14,6 +14,11 @@ on:
         type: number
         default: 4
 
+concurrency:
+  # Keep manuscript reproductions separate from ordinary PR/push runs.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.reproduce_figure_4c && 'paper' || 'ci' }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -28,7 +33,7 @@ jobs:
       JULIA_PKG_PRECOMPILE_AUTO: '0'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Load pinned Darwin revisions
         run: cat darwin-sources.env >> "$GITHUB_ENV"
@@ -47,11 +52,11 @@ jobs:
           sudo apt-get install -y gfortran make libnetcdf-dev libnetcdff-dev tcsh
 
       # Darwin3's bundled Cog generator imports imp (removed in Python 3.12).
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
         with:
           version: '1.10'
 
@@ -88,7 +93,7 @@ jobs:
 
       - name: Upload plots generated from test simulations
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: darone-example-plots
           if-no-files-found: ignore
@@ -139,7 +144,7 @@ jobs:
 
       - name: Paper Figure 4C - upload result (manual)
         if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.reproduce_figure_4c }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: darone-bray-curtis-full
           if-no-files-found: ignore
@@ -156,7 +161,7 @@ jobs:
 
       - name: Upload failure logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: darone-test-logs
           if-no-files-found: ignore
