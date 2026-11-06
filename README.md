@@ -54,10 +54,6 @@ You're now ready for the [beginner tutorial](beginner_tutorial)!
 
 See instructions in the documentation: https://barbara42.github.io/Dar_One/build/getting_started/#Setting-up-on-local-machine
 
-## Pinned Darwin sources
-
-The tested Darwin3 and `dar_one_config` revisions are recorded in [`darwin-sources.env`](darwin-sources.env). CI reads this file; local scripts can load the same versions with `set -a; . ./darwin-sources.env; set +a`.
-
 ## Example integration tests
 
 The example test runner executes all nine beginner tutorial and case-study scripts, including Fortran builds, simulations, and the tutorial plot. It uses compact Darwin reference inputs and short simulation durations. Run it with a Darwin checkout containing `verification/dar_one_config` and a working GNU Fortran toolchain:
@@ -66,10 +62,6 @@ The example test runner executes all nine beginner tutorial and case-study scrip
 DARONE_MITGCM_PATH=/path/to/darwin3 julia --project=. test/test_examples.jl
 ```
 
-Inside the existing Docker image, the default `/dar_one_docker/darwin3` path is used automatically. Test runs receive unique experiment names; their results are written under Darwin's `verification/dar_one_config/run` directory. The runner also updates the Darwin configuration source files when rebuilding each example.
-
-The tests use the bundled Darwin reference fields, run all 16 global tiles for five model days, and verify normal termination and nonempty NetCDF diagnostics. The beginner tutorial also verifies that its plotting example runs successfully.
-
 # Contributing 
 
 We have three main branches: `main`, `test`, and `dev`.
@@ -77,16 +69,3 @@ We have three main branches: `main`, `test`, and `dev`.
 All other branches are feature branches. Once a feature has been implemented, tested, and documented you can make a pull request to merge it into the `dev` branch. 
 
 `main` is the most stable version of the code. This branch is used for the docker image. 
-
-## Manuscript Figure 4C reproduction
-
-The ten-year, 16-tile Bray-Curtis reproduction is maintained separately from the
-example integration tests. See [the Figure 4C instructions](paper/fig4c/README.md)
-for setup, execution, and plotting.
-
-## Bundled reference inputs
-
-CI and the example integration tests use the compact reference fields in
-[`data/darwin/`](data/darwin/). The test setup maps their descriptive filenames
-to the historical `3d.nc`, `tave.nc`, and `par.nc` names expected by the examples.
-The case-study scripts therefore retain their original input conventions.
