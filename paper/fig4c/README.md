@@ -1,49 +1,118 @@
 # Figure 4C - Bray-Curtis dissimilarity
 
-Reproduce Figure 4C of the DAR1 manuscript from 16 independent 90 x 40 DAR1
+Reproduce Figure 4C of the DAR1 manuscript using 16 independent 90 x 40
 simulations initialized with the bundled Darwin annual-mean reference fields.
-The model runs for ten years (28,800 iterations per tile), and the plot compares
-the mean of the last two annual outputs with the reference community. As in the
-original analysis, the comparison uses 45 non-diazotroph biomass tracers
-(21-29 and 35-70).
+Each tile runs for ten years (28,800 iterations). The analysis compares the
+average of the final two annual outputs with the reference community, using
+45 non-diazotroph biomass tracers (21-29 and 35-70).
 
-## Run from the repository root
+The instructions below run on Linux without Docker. Run the commands from the
+DarOne repository root, in the **same terminal** so that the exported paths
+remain set. Julia 1.10 and Conda must be installed.
 
-Use a Darwin3 checkout with `verification/dar_one_config` and the standard
-DarOne local build dependencies. The pinned source revisions are recorded in
-[`darwin-sources.env`](../../darwin-sources.env).
+## 1. Install dependencies
 
-Create the plotting environment once:
+On Ubuntu, install the native MITgcm build dependencies:
 
 ```bash
-conda env create -f paper/fig4c/environment.yml
+sudo apt-get update
+sudo apt-get install -y git gfortran make libnetcdf-dev libnetcdff-dev tcsh
 ```
 
-Configure the Darwin checkout and link the bundled reference fields using the
-original filenames expected by the case-study scripts:
+Create and activate the Python 3.11 environment used for the figure. Darwin3's
+build tools also require Python 3.11 (their Cog generator uses the removed
+`imp` module), so keep this environment active during the model build:
 
 ```bash
 cd ~/Dar_One
-export DARONE_MITGCM_PATH=/path/to/darwin3
-export DARONE_DATA_DIR="$(mktemp -d)"
-ln -s "$PWD/data/darwin/surface_tracers.nc" "$DARONE_DATA_DIR/3d.nc"
-ln -s "$PWD/data/darwin/surface_temperature.nc" "$DARONE_DATA_DIR/tave.nc"
-ln -s "$PWD/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
+conda env create -f paper/fig4c/environment.yml
+conda activate darone-fig4c
+
+julia --project=. -e 'using Pkg; Pkg.instantiate()' && \
+julia --project=. -e 'using DarOne; println("DarOne loads successfully")'
 ```
 
-Build, run the 16 tiles, and generate Figure 4C:
+If the Conda environment already exists, simply activate it.
+
+## 2. Locate or install Darwin3
+
+The global case study requires Darwin3 with `dar_one_config` under
+`verification/`. **Set `DARONE_MITGCM_PATH` to the real checkout directory**;
+`/path/to/darwin3` is only a placeholder, not a usable path. For a new
+checkout, the commands below reproduce the source revisions used by CI,
+recorded in [`darwin-sources.env`](../../darwin-sources.env):
 
 ```bash
-julia --project=. case_studies/global_steadystate_build.jl
-JULIA_NUM_THREADS=4 bash paper/fig4c/run_bray_curtis_tiles.sh "$HOME/darone-fig4c"
-conda run -n darone-fig4c python paper/fig4c/plot_bray_curtis.py "$HOME/darone-fig4c"
+cd ~/Dar_One
+set -a
+. ./darwin-sources.env
+set +a
+export DARONE_MITGCM_PATH="$HOME/darwin3"
+
+git init -q "$DARONE_MITGCM_PATH"
+git -C "$DARONE_MITGCM_PATH" remote add origin https://github.com/darwinproject/darwin3.git
+git -C "$DARONE_MITGCM_PATH" fetch --depth 1 origin "$DARWIN_REV"
+git -C "$DARONE_MITGCM_PATH" checkout --quiet --detach FETCH_HEAD
+
+config="$DARONE_MITGCM_PATH/verification/dar_one_config"
+git init -q "$config"
+git -C "$config" remote add origin https://github.com/barbara42/dar_one_config.git
+git -C "$config" fetch --depth 1 origin "$DARONE_CONFIG_REV"
+git -C "$config" checkout --quiet --detach FETCH_HEAD
+mkdir -p "$config/build" "$config/run"
 ```
 
-The launcher uses up to `JULIA_NUM_THREADS` concurrent single-threaded model
-processes. To choose a different concurrency, set `DARONE_GLOBAL_WORKERS`.
+If Darwin3 and `dar_one_config` are already installed, use their existing
+checkout instead: export `DARONE_MITGCM_PATH` to its actual directory and
+skip the checkout commands above. Verify that the expected configuration exists:
+
+```bash
+test -f "$DARONE_MITGCM_PATH/tools/genmake2" && \
+test -f "$DARONE_MITGCM_PATH/verification/dar_one_config/code/SIZE.h" && \
+echo "Darwin3 configuration found at $DARONE_MITGCM_PATH"
+```
+
+## 3. Prepare the bundled reference data
+
+The original case-study scripts expect the names `3d.nc`, `tave.nc`, and
+`par.nc`. Link those names to the compact reference files tracked in this
+repository. Use a persistent directory so the setup works across sessions:
+
+```bash
+cd ~/Dar_One
+export DARONE_DATA_DIR="$HOME/darone-fig4c/inputs"
+mkdir -p "$DARONE_DATA_DIR"
+ln -sfn "$PWD/data/darwin/surface_tracers.nc" "$DARONE_DATA_DIR/3d.nc"
+ln -sfn "$PWD/data/darwin/surface_temperature.nc" "$DARONE_DATA_DIR/tave.nc"
+ln -sfn "$PWD/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
+ls -lhL "$DARONE_DATA_DIR"/{3d,tave,par}.nc
+```
+
+## 4. Build, run and plot
+
+Check that both `DARONE_MITGCM_PATH` and `DARONE_DATA_DIR` are still set in
+this terminal. Build the 90 x 40 executable once, then run all 16 tiles and
+plot the final annual-mean Bray-Curtis field:
+
+```bash
+cd ~/Dar_One
+julia --project=. case_studies/global_steadystate_build.jl && \
+DARONE_EXAMPLE_ITERATIONS=28800 JULIA_NUM_THREADS=4 \
+  bash paper/fig4c/run_bray_curtis_tiles.sh "$HOME/darone-fig4c" && \
+python paper/fig4c/plot_bray_curtis.py "$HOME/darone-fig4c"
+```
+
+The `&&` operators stop the sequence if the build or any tile simulation fails,
+so plotting only starts once the simulations succeed. The launcher runs up to
+`JULIA_NUM_THREADS` independent, single-threaded processes; alternatively,
+set `DARONE_GLOBAL_WORKERS` to choose the worker count.
 
 ## Outputs
 
-The analysis writes `Fig_Bray_Curtis.png` and `Fig_Bray_Curtis.nc` to
-`~/darone-fig4c/`; per-tile simulation logs are under `~/darone-fig4c/logs/`.
-The paper reproduction is independent of routine GitHub Actions tests.
+The figure and calculated field are saved as `~/darone-fig4c/Fig_Bray_Curtis.png`
+and `~/darone-fig4c/Fig_Bray_Curtis.nc`. Per-tile logs are written to
+`~/darone-fig4c/logs/`. The 16 simulation directories remain in
+`$DARONE_MITGCM_PATH/verification/dar_one_config/run/`.
+
+This ten-year manuscript reproduction is separate from routine GitHub Actions
+integration tests, which run shorter simulations.
