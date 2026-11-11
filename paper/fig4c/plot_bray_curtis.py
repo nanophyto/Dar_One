@@ -14,9 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE = Path(os.environ.get("DARONE_MITGCM_PATH", "/dar_one_docker/darwin3"))
 RUNS = SOURCE / "verification" / "dar_one_config" / "run"
 DATA = Path(os.environ.get("DARONE_DATA_DIR", ROOT / "data" / "darwin"))
-REFERENCE = DATA / "3d.nc"
-if not REFERENCE.is_file():
-    REFERENCE = DATA / "surface_tracers.nc"
+REFERENCE = DATA / "surface_tracers.nc"
 OUTPUT = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else Path.home() / "darone-fig4c"
 SPECIES = (*range(21, 30), *range(35, 71))  # Exclude diazotrophs, as in the notebook.
 

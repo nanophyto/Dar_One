@@ -22,10 +22,10 @@ nY = 40
 
 # load seed files - these are from global darwin runs
 # yearly average!  
-seed_dir = get(ENV, "DARONE_DATA_DIR", "/dar_one_docker")
-seed_file_3d = joinpath(seed_dir, "3d.nc")
-seed_file_temp = joinpath(seed_dir, "tave.nc")
-seed_file_par = joinpath(seed_dir, "par.nc")
+seed_dir = get(ENV, "DARONE_DATA_DIR", normpath(joinpath(@__DIR__, "..", "data", "darwin")))
+seed_file_3d = joinpath(seed_dir, "surface_tracers.nc")
+seed_file_temp = joinpath(seed_dir, "surface_temperature.nc")
+seed_file_par = joinpath(seed_dir, "par_upper4.nc")
 seed_ds_3d = Dataset(seed_file_3d)
 seed_ds_temp = Dataset(seed_file_temp)
 seed_ds_par = Dataset(seed_file_par)

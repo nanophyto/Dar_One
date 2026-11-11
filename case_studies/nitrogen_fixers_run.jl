@@ -40,10 +40,10 @@ update_temperature(config_obj, new_temp)
 update_delX_delY_for_grid(config_obj, nX, nY) 
 
 # seeded from N Pacific gyre 
-seed_dir = get(ENV, "DARONE_DATA_DIR", "/dar_one_docker")
-seed_file = joinpath(seed_dir, "3d.nc")
+seed_dir = get(ENV, "DARONE_DATA_DIR", normpath(joinpath(@__DIR__, "..", "data", "darwin")))
+seed_file = joinpath(seed_dir, "surface_tracers.nc")
 seed_ds = Dataset(seed_file)
-seed_par_file = joinpath(seed_dir, "par.nc")
+seed_par_file = joinpath(seed_dir, "par_upper4.nc")
 seed_ds_par = Dataset(seed_par_file)
 x = 203
 y = 135

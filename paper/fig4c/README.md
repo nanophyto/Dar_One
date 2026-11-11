@@ -72,27 +72,17 @@ test -f "$DARONE_MITGCM_PATH/verification/dar_one_config/code/SIZE.h" && \
 echo "Darwin3 configuration found at $DARONE_MITGCM_PATH"
 ```
 
-## 3. Prepare the bundled reference data
+## 3. Build, run and plot
 
-The original case-study scripts expect the names `3d.nc`, `tave.nc`, and
-`par.nc`. Link those names to the compact reference files tracked in this
-repository. Use a persistent directory so the setup works across sessions:
+The simulations are initialized from the compact Darwin reference fields in
+[`data/darwin`](../../data/darwin) (`surface_tracers.nc`,
+`surface_temperature.nc`, and `par_upper4.nc`), which the scripts read by
+default. To use other Darwin output instead, set `DARONE_DATA_DIR` to a
+directory containing files with those three names.
 
-```bash
-cd ~/Dar_One
-export DARONE_DATA_DIR="$HOME/darone-fig4c/inputs"
-mkdir -p "$DARONE_DATA_DIR"
-ln -sfn "$PWD/data/darwin/surface_tracers.nc" "$DARONE_DATA_DIR/3d.nc"
-ln -sfn "$PWD/data/darwin/surface_temperature.nc" "$DARONE_DATA_DIR/tave.nc"
-ln -sfn "$PWD/data/darwin/par_upper4.nc" "$DARONE_DATA_DIR/par.nc"
-ls -lhL "$DARONE_DATA_DIR"/{3d,tave,par}.nc
-```
-
-## 4. Build, run and plot
-
-Check that both `DARONE_MITGCM_PATH` and `DARONE_DATA_DIR` are still set in
-this terminal. Build the 90 x 40 executable once, then run all 16 tiles and
-plot the final annual-mean Bray-Curtis field:
+Check that `DARONE_MITGCM_PATH` is still set in this terminal. Build the
+90 x 40 executable once, then run all 16 tiles and plot the final annual-mean
+Bray-Curtis field:
 
 ```bash
 cd ~/Dar_One

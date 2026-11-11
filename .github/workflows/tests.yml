@@ -30,7 +30,6 @@ jobs:
         run: |
           echo "DARONE_MITGCM_PATH=$RUNNER_TEMP/darwin3" >> "$GITHUB_ENV"
           echo "DARONE_EXAMPLE_LOG_DIR=$RUNNER_TEMP/darone-example-logs" >> "$GITHUB_ENV"
-          echo "DARONE_DATA_DIR=$RUNNER_TEMP/darwin-inputs" >> "$GITHUB_ENV"
 
       - name: Install Fortran and NetCDF dependencies
         run: |

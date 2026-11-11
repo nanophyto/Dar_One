@@ -69,19 +69,19 @@ function run_case_study(build_script, run_script, names, environment)
     foreach(check_simulation, names)
 end
 
-mktempdir() do data_dir
-    reference_dir = joinpath(ROOT, "data", "darwin")
-    for (alias, original) in (("3d.nc", "surface_tracers.nc"),
-                              ("tave.nc", "surface_temperature.nc"),
-                              ("par.nc", "par_upper4.nc"))
-        target = joinpath(reference_dir, original)
-        isfile(target) || error("Missing Darwin reference input: $target")
-        symlink(target, joinpath(data_dir, alias))
-    end
-    plot_file = joinpath(data_dir, "beginner_tutorial.png")
+const DATA_DIR = joinpath(ROOT, "data", "darwin")
+const INPUT_FILES = ("surface_tracers.nc", "surface_temperature.nc", "par_upper4.nc")
+
+for name in INPUT_FILES
+    path = joinpath(DATA_DIR, name)
+    isfile(path) || error("Missing Darwin reference input: $path")
+end
+
+mktempdir() do plot_dir
+    plot_file = joinpath(plot_dir, "beginner_tutorial.png")
     environment = [
         "DARONE_MITGCM_PATH" => DARWIN,
-        "DARONE_DATA_DIR" => data_dir,
+        "DARONE_DATA_DIR" => DATA_DIR,
         "DARONE_EXAMPLE_ITERATIONS" => "12",
         "DARONE_EXAMPLE_ID_SUFFIX" => RUN_SUFFIX,
         "DARONE_PLOT_FILE" => plot_file,
@@ -104,9 +104,7 @@ mktempdir() do data_dir
         end
 
         @testset "Reference input data" begin
-            @test all(name -> isfile(joinpath(data_dir, name)) &&
-                              filesize(joinpath(data_dir, name)) > 0,
-                      ("3d.nc", "tave.nc", "par.nc"))
+            @test all(name -> filesize(joinpath(DATA_DIR, name)) > 0, INPUT_FILES)
         end
 
         @testset "Bottle experiment" begin
