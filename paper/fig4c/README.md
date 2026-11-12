@@ -74,7 +74,7 @@ echo "Darwin3 configuration found at $DARONE_MITGCM_PATH"
 
 ## 3. Build, run and plot
 
-The simulations are initialized from the compact Darwin reference fields in
+The simulations are initialized from the Darwin reference fields in
 [`data/darwin`](../../data/darwin) (`surface_tracers.nc`,
 `surface_temperature.nc`, and `par_upper4.nc`), which the scripts read by
 default. To use other Darwin output instead, set `DARONE_DATA_DIR` to a

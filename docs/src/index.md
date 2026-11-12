@@ -96,7 +96,7 @@ Biology
 
 Using a "Seed" netCDF File 
 
-Often, I use the output of a global Darwin run to initialize (or seed) the values of DAR1. A compact annual-mean set of Darwin surface tracer values ships with DAR1 as `data/darwin/surface_tracers.nc` (alongside `surface_temperature.nc` and `par_upper4.nc`). When working with netCDF files, I use the package NCDatasets. 
+Often, I use the output of a global Darwin run to initialize (or seed) the values of DAR1. A set of annual-mean Darwin surface tracer values ships with DAR1 as `data/darwin/surface_tracers.nc` (alongside `surface_temperature.nc` and `par_upper4.nc`). When working with netCDF files, I use the package NCDatasets. 
 
 First, we need to include NCDatasets, then load up the contents of the file into a Dataset.
 ```

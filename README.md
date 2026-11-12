@@ -56,7 +56,7 @@ See instructions in the documentation: https://barbara42.github.io/Dar_One/build
 
 ## Example integration tests
 
-The example test runner executes all nine beginner tutorial and case-study scripts, including Fortran builds, simulations, and the tutorial plot. It uses compact Darwin reference inputs and short simulation durations. Run it with a Darwin checkout containing `verification/dar_one_config` and a working GNU Fortran toolchain:
+The example test runner executes all nine beginner tutorial and case-study scripts, including Fortran builds, simulations, and the tutorial plot. It uses Darwin reference inputs and short simulation durations. Run it with a Darwin checkout containing `verification/dar_one_config` and a working GNU Fortran toolchain:
 
 ```bash
 DARONE_MITGCM_PATH=/path/to/darwin3 julia --project=. test/test_examples.jl

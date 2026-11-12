@@ -112,7 +112,7 @@ using NCDatasets
 MITgcm_path[1] = "/dar_one_docker/darwin3" 
 ```
 
-Next, we load up the files using to set initial values for tracers, taken from a surface point in a global MITgcm Darwin run. Compact annual-mean versions of these files ship with DAR1 in the `data/darwin` directory (`surface_tracers.nc`, `surface_temperature.nc`, and `par_upper4.nc`), and the case studies read them from there by default. To seed from other Darwin output, set the `DARONE_DATA_DIR` environment variable to a directory containing files with those names.
+Next, we load up the files using to set initial values for tracers, taken from a surface point in a global MITgcm Darwin run. Annual-mean versions of these files ship with DAR1 in the `data/darwin` directory (`surface_tracers.nc`, `surface_temperature.nc`, and `par_upper4.nc`), and the case studies read them from there by default. To seed from other Darwin output, set the `DARONE_DATA_DIR` environment variable to a directory containing files with those names.
 
 ```
 # load seed files - these are from global darwin runs 
